@@ -17,8 +17,14 @@ function App() {
     const fetchData = async () => {
       try {
         // Replace 'http://localhost:8000' with the actual URL of your FastAPI backend
-        const response = await axios.get('http://localhost:8000/api/grocery/items');
-        setBackendData(response.data);
+        const response = await axios.get('http://127.0.0.1:8000/api/grocery/items/5');
+        console.log('Response from backend:', response);
+
+        // Check the structure of the data received
+        console.log('Data from backend:', response.data.name);
+
+        // Set the data to the state
+        setBackendData(response.data.name);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -32,20 +38,31 @@ function App() {
       <nav>
         <ul>
           <li>
-            <Link to="/HomePage">HomePage</Link>
+            <Link to="/HomePage">Home</Link>
           </li>
           <li>
-            <Link to="/GroceryPage">GroceryPage</Link>
+            <Link to="/GroceryPage">Grocery List</Link>
           </li>
         </ul>
       </nav>
 
       <Routes>
-        <Route path="/HomePage" element={<HomePage />} />
-        <Route path="/GroceryPage" element={<GroceryPage />} />
+        <Route path="/" element={<NavigateHome />} />
+        <Route path="/HomePage" element={<HomePage backendData={backendData}/>} />
+        <Route path="/GroceryPage" element={<GroceryPage backendData={backendData}/>} />
       </Routes>
     </Router>
   );
+}
+
+function NavigateHome() {
+  useEffect(() => {
+    // Redirect to /HomePage when the component mounts
+    window.location.replace('/HomePage');
+  }, []);
+
+  // Return null or a component for the redirected route
+  return null;
 }
 
 export default App;
