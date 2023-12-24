@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Import your components or pages
 import HomePage from './components/HomePage';
@@ -11,6 +12,7 @@ import GroceryPage from './components/GroceryPage';
 function App() {
   // State to store data from the backend
   const [backendData, setBackendData] = useState(null);
+  const [isNavOpen, setNavOpen] = useState(false);
 
   // Effect to fetch data from the backend when the component mounts
   useEffect(() => {
@@ -33,29 +35,37 @@ function App() {
     fetchData();
   }, []); // Empty dependency array ensures the effect runs only once on mount
 
+  const handleNavToggle = () => {
+    setNavOpen(!isNavOpen);
+  };
+
   return (
     <Router>
       <nav className="navbar navbar-expand-lg navbar-light bg-light">
-      <a className="navbar-brand" href="#">Home Hub</a>
-      <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span className="navbar-toggler-icon"></span>
-      </button>
-      <div className="collapse navbar-collapse" id="navbarNav">
-        <ul className="navbar-nav">
-          <li className="nav-item">
-            <a className="nav-link" href="/HomePage">Home</a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="/GroceryPage">Grocery List</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+        <Link className="navbar-brand" to="/">Home Hub</Link>
+        <button
+          className="navbar-toggler"
+          type="button"
+          onClick={handleNavToggle}
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+        <div className={`collapse navbar-collapse ${isNavOpen ? 'show' : ''}`}>
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <Link className="nav-link" to="/HomePage">Home</Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/GroceryPage">Grocery List</Link>
+            </li>
+          </ul>
+        </div>
+      </nav>
 
       <Routes>
         <Route path="/" element={<NavigateHome />} />
-        <Route path="/HomePage" element={<HomePage backendData={backendData}/>} />
-        <Route path="/GroceryPage" element={<GroceryPage backendData={backendData}/>} />
+        <Route path="/HomePage" element={<HomePage backendData={backendData} />} />
+        <Route path="/GroceryPage" element={<GroceryPage backendData={backendData} />} />
       </Routes>
     </Router>
   );
