@@ -34,7 +34,7 @@ const GroceryPage = () => {
 
   const deleteList = async (listId) => {
     try {
-      await axios.delete(`YOUR_BACKEND_API_URL/grocery-lists/${listId}`);
+      await axios.put(`http://127.0.0.1:8000/api/grocery/list/deactivate/${listId}`);
       // Refresh the grocery lists after deleting one
       fetchGroceryLists();
     } catch (error) {
