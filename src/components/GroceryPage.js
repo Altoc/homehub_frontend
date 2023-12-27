@@ -13,8 +13,8 @@ const GroceryPage = () => {
 
   const fetchGroceryLists = async () => {
     try {
-      const response = await axios.get('YOUR_BACKEND_API_URL/grocery-lists');
-      setGroceryLists(response.data);
+      const response = await axios.get('http://127.0.0.1:8000/api/grocery/list/active_grocery_lists');
+      setGroceryLists(response.data.active_grocery_lists);
     } catch (error) {
       console.error('Error fetching grocery lists:', error);
     }
