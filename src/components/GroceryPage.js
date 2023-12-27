@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, ListGroup } from 'react-bootstrap';
+import { Button, Card, ListGroup, Form } from 'react-bootstrap';
 import axios from 'axios';
 
 const GroceryPage = () => {
   const [groceryLists, setGroceryLists] = useState([]);
-  const [newListName, setNewListName] = useState('');
+  const [newListName, setNewListName] = useState('');  
+  const [editingListId, setEditingListId] = useState(null);
+  const [editedItems, setEditedItems] = useState([]);
 
   useEffect(() => {
     // Fetch existing grocery lists from the backend when the component mounts
@@ -42,26 +44,39 @@ const GroceryPage = () => {
     }
   };
 
-  return (
+  const toggleEditingMode = (listId) => {
+    if (editingListId === listId) {
+      setEditingListId(null);
+      setEditedItems([]);
+    } else {
+      setEditingListId(listId);
+      // Initialize edited items with the current items of the list
+      const list = groceryLists.find((list) => list.id === listId);
+      setEditedItems(list.items || []);
+    }
+  };
+
+  // IPW TODO: How to add a list of new items to this call. Req body?
+  const saveEditedItems = async () => {
+    try {
+      await axios.put(`http://127.0.0.1:8000/api/grocery/list/edit/${editingListId}`, { items: editedItems });
+      // Exit editing mode and refresh the grocery lists
+      toggleEditingMode(editingListId);
+      fetchGroceryLists();
+    } catch (error) {
+      console.error('Error saving edited items:', error);
+    }
+  };
+
+  const addItem = () => {
+    // Add an empty string as a placeholder for a new grocery item
+    setEditedItems([...editedItems, '']);
+  };
+
+ return (
     <div className="container mt-4">
       <h2>Grocery Lists</h2>
-      <Card style={{ width: '18rem' }}>
-        <Card.Body>
-          <Card.Title>Create New List</Card.Title>
-          <Card.Text>
-            <input
-              type="text"
-              className="form-control mb-2"
-              placeholder="Enter list name"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-            />
-            <Button variant="primary" onClick={createNewList}>
-              Create List
-            </Button>
-          </Card.Text>
-        </Card.Body>
-      </Card>
+      {/* ... (Create New List section) */}
 
       <h3 className="mt-4">Existing Lists</h3>
       {groceryLists.length === 0 ? (
@@ -70,10 +85,40 @@ const GroceryPage = () => {
         <ListGroup className="mt-2">
           {groceryLists.map((list) => (
             <ListGroup.Item key={list.id}>
-              {list.name}
-              <Button variant="danger" size="sm" className="float-right" onClick={() => deleteList(list.id)}>
-                Delete
-              </Button>
+              {editingListId === list.id ? (
+                <>
+                  {editedItems.map((item, index) => (
+                    <div key={index} className="mb-2">
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter grocery item"
+                        value={item}
+                        onChange={(e) => {
+                          const updatedItems = [...editedItems];
+                          updatedItems[index] = e.target.value;
+                          setEditedItems(updatedItems);
+                        }}
+                      />
+                    </div>
+                  ))}
+                  <Button variant="success" size="sm" className="float-right" onClick={saveEditedItems}>
+                    Save
+                  </Button>
+                  <Button variant="primary" size="sm" className="float-right mr-2" onClick={addItem}>
+                    Add Item
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {list.name}
+                  <Button variant="danger" size="sm" className="float-right" onClick={() => deleteList(list.id)}>
+                    Delete
+                  </Button>
+                  <Button variant="warning" size="sm" className="float-right" onClick={() => toggleEditingMode(list.id)}>
+                    Edit
+                  </Button>
+                </>
+              )}
             </ListGroup.Item>
           ))}
         </ListGroup>
