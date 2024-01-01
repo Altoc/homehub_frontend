@@ -7,6 +7,7 @@ const GroceryPage = () => {
   const [newListName, setNewListName] = useState('');  
   const [editingListId, setEditingListId] = useState(null);
   const [editedItems, setEditedItems] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   useEffect(() => {
     // Fetch existing grocery lists from the backend when the component mounts
@@ -22,13 +23,21 @@ const GroceryPage = () => {
     }
   };
 
-  const createNewList = async () => {
+  const handleCreateClick = () => {
+    setShowCreateForm(true);
+  };
+
+  const handleCreateList = async () => {
     try {
-      await axios.post('YOUR_BACKEND_API_URL/grocery-lists', { name: newListName });
+      const currentDate = new Date().toISOString();  // Get the current date in ISO format
+      await axios.post('http://127.0.0.1:8000/api/grocery/list/create', { name: newListName, items: editedItems, created_at: currentDate });
+
       // Refresh the grocery lists after creating a new one
       fetchGroceryLists();
-      // Clear the input field
+      // Clear the input fields and hide the form
       setNewListName('');
+      setEditedItems([]);
+      setShowCreateForm(false);
     } catch (error) {
       console.error('Error creating new grocery list:', error);
     }
@@ -56,7 +65,6 @@ const GroceryPage = () => {
     }
   };
 
-  // IPW TODO: How to add a list of new items to this call. Req body?
   const saveEditedItems = async () => {
     try {
       await axios.put(`http://127.0.0.1:8000/api/grocery/list/edit/${editingListId}`, { items: editedItems });
@@ -76,7 +84,50 @@ const GroceryPage = () => {
  return (
     <div className="container mt-4">
       <h2>Grocery Lists</h2>
-      {/* ... (Create New List section) */}
+      {/* Create New List section */}
+      <Button variant="primary" onClick={handleCreateClick}>
+        Create List
+      </Button>
+
+      {showCreateForm && (
+        <div className="mt-4">
+          <h3>Create New List</h3>
+          <Form>
+            <Form.Group>
+              <Form.Label>List Name:</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter list name"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Items:</Form.Label>
+              {editedItems.map((item, index) => (
+                <div key={index} className="mb-2">
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter grocery item"
+                    value={item}
+                    onChange={(e) => {
+                      const updatedItems = [...editedItems];
+                      updatedItems[index] = e.target.value;
+                      setEditedItems(updatedItems);
+                    }}
+                  />
+                </div>
+              ))}
+              <Button variant="primary" size="sm" className="float-right" onClick={handleCreateList}>
+                Save
+              </Button>
+              <Button variant="secondary" size="sm" className="float-right mr-2" onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </Button>
+            </Form.Group>
+          </Form>
+        </div>
+      )}
 
       <h3 className="mt-4">Existing Lists</h3>
       {groceryLists.length === 0 ? (
