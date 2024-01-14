@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, ListGroup, Form } from 'react-bootstrap';
+import { Button, ListGroup, Form } from 'react-bootstrap';  // Imported components from react-bootstrap
 import axios from 'axios';
 
 const GroceryPage = () => {
+  // State variables using the useState hook
   const [groceryLists, setGroceryLists] = useState([]);
   const [newListName, setNewListName] = useState('');  
   const [editingListId, setEditingListId] = useState(null);
@@ -14,6 +15,7 @@ const GroceryPage = () => {
     fetchGroceryLists();
   }, []);
 
+  // Function to fetch grocery lists from the backend
   const fetchGroceryLists = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/grocery/list/active_grocery_lists');
@@ -23,10 +25,12 @@ const GroceryPage = () => {
     }
   };
 
+  // Event handler for the "Create List" button click
   const handleCreateClick = () => {
     setShowCreateForm(true);
   };
 
+  // Function to handle creating a new grocery list
   const handleCreateList = async () => {
     try {
       const currentDate = new Date().toISOString();  // Get the current date in ISO format
@@ -43,6 +47,7 @@ const GroceryPage = () => {
     }
   };
 
+  // Function to delete a grocery list
   const deleteList = async (listId) => {
     try {
       await axios.put(`http://127.0.0.1:8000/api/grocery/list/deactivate/${listId}`);
@@ -53,18 +58,34 @@ const GroceryPage = () => {
     }
   };
 
+  // Function to toggle editing mode for a grocery list
   const toggleEditingMode = (listId) => {
     if (editingListId === listId) {
       setEditingListId(null);
       setEditedItems([]);
     } else {
-      setEditingListId(listId);
-      // Initialize edited items with the current items of the list
-      const list = groceryLists.find((list) => list.id === listId);
-      setEditedItems(list.items || []);
+      let itemList
+      groceryLists.forEach((list) => {
+        list.forEach((innerList) => {
+          if(listId == innerList){
+            itemList = list
+            return;
+          }
+        })
+      })
+  
+      // Check if a matching list is found
+      if (itemList) {
+        setEditingListId(listId);
+        setEditedItems(itemList.items);
+      } else {
+        console.error("itemList not found for listId: " + listId);
+        // Handle the case where no matching list is found
+      }
     }
   };
 
+  // Function to save edited items for a grocery list
   const saveEditedItems = async () => {
     try {
       await axios.put(`http://127.0.0.1:8000/api/grocery/list/edit/${editingListId}`, { items: editedItems });
@@ -76,12 +97,16 @@ const GroceryPage = () => {
     }
   };
 
+  // Function to add a new item to the edited items list
   const addItem = () => {
     // Add an empty string as a placeholder for a new grocery item
     setEditedItems([...editedItems, '']);
   };
 
- return (
+ 
+
+  // JSX rendering of the component
+  return (
     <div className="container mt-4">
       <h2>Grocery Lists</h2>
       {/* Create New List section */}
@@ -128,54 +153,67 @@ const GroceryPage = () => {
           </Form>
         </div>
       )}
-
-      <h3 className="mt-4">Existing Lists</h3>
-      {groceryLists.length === 0 ? (
-        <p>No grocery lists available.</p>
-      ) : (
-        <ListGroup className="mt-2">
-          {groceryLists.map((list) => (
-            <ListGroup.Item key={list.id}>
-              {editingListId === list.id ? (
-                <>
-                  {editedItems.map((item, index) => (
-                    <div key={index} className="mb-2">
-                      <Form.Control
-                        type="text"
-                        placeholder="Enter grocery item"
-                        value={item}
-                        onChange={(e) => {
-                          const updatedItems = [...editedItems];
-                          updatedItems[index] = e.target.value;
-                          setEditedItems(updatedItems);
-                        }}
-                      />
-                    </div>
-                  ))}
-                  <Button variant="success" size="sm" className="float-right" onClick={saveEditedItems}>
-                    Save
-                  </Button>
-                  <Button variant="primary" size="sm" className="float-right mr-2" onClick={addItem}>
-                    Add Item
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {list.name}
-                  <Button variant="danger" size="sm" className="float-right" onClick={() => deleteList(list.id)}>
-                    Delete
-                  </Button>
-                  <Button variant="warning" size="sm" className="float-right" onClick={() => toggleEditingMode(list.id)}>
-                    Edit
-                  </Button>
-                </>
-              )}
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
-      )}
-    </div>
-  );
+    <h3 className="mt-4">Existing Lists</h3>
+    {groceryLists.length === 0 ? (
+      <p>No grocery lists available.</p>
+    ) : (
+      <ListGroup className="mt-2">
+        {groceryLists.map((list) => (
+          <ListGroup.Item key={list[0]}>
+            {/*if this list entry id matches the editting list id, do editting stuff*/}
+            {editingListId === list[0] ? (
+              <>
+                {editedItems.map((item, index) => (
+                  <div key={index} className="mb-2">
+                    <Form.Control
+                      type="text"
+                      placeholder="Enter grocery item"
+                      value={item}
+                      onChange={(e) => {
+                        const updatedItems = [...editedItems];
+                        updatedItems[index] = e.target.value;
+                        setEditedItems(updatedItems);
+                      }}
+                    />
+                  </div>
+                ))}
+                <Button variant="success" size="sm" className="float-right" onClick={saveEditedItems}>
+                  Save
+                </Button>
+                <Button variant="primary" size="sm" className="float-right mr-2" onClick={addItem}>
+                  Add Item
+                </Button>
+              </>
+            ) : (
+            //non-editting stuff:
+              <>
+                <strong>{list[1]}</strong>
+                <br></br>
+                <Button variant="danger" size="sm" className="float-right" onClick={() => deleteList(list[0])}>
+                  Delete
+                </Button>
+                <Button variant="warning" size="sm" className="float-right" onClick={() => toggleEditingMode(list[0])}>
+                  Edit
+                </Button>
+                {/* Display grocery items for the current list */}
+                {list[3] && list[3].length > 0 && (
+                  <div className="mt-2">
+                    Items:
+                    <ListGroup className="mt-2">
+                      {list.slice(3).map((element, index) => (
+                        <ListGroup.Item key={element[0]}>{element[1]}</ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </div>
+                )}
+              </>
+            )}
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
+    )}
+  </div>
+);
 };
 
 export default GroceryPage;
