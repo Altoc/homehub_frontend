@@ -18,7 +18,7 @@ const GroceryPage = () => {
   // Function to fetch grocery lists from the backend
   const fetchGroceryLists = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/grocery/list/active_grocery_lists');
+      const response = await axios.get('http://192.168.1.164:8000/api/grocery/list/active_grocery_lists');
       setGroceryLists(response.data.active_grocery_lists);
     } catch (error) {
       console.error('Error fetching grocery lists:', error);
@@ -34,13 +34,13 @@ const GroceryPage = () => {
   const handleCreateList = async () => {
     try {
       const currentDate = new Date().toISOString();  // Get the current date in ISO format
-      await axios.post('http://127.0.0.1:8000/api/grocery/list/create', { name: newListName, items: editedItems, created_at: currentDate });
+      await axios.post('http://192.168.1.164:8000/api/grocery/list/create', { name: newListName, items: editedItems, created_at: currentDate });
 
       // Refresh the grocery lists after creating a new one
       fetchGroceryLists();
       // Clear the input fields and hide the form
       setNewListName('');
-      setEditedItems([]);
+      setEditedItems(['']);
       setShowCreateForm(false);
     } catch (error) {
       console.error('Error creating new grocery list:', error);
@@ -50,7 +50,7 @@ const GroceryPage = () => {
   // Function to delete a grocery list
   const deleteList = async (listId) => {
     try {
-      await axios.put(`http://127.0.0.1:8000/api/grocery/list/deactivate/${listId}`);
+      await axios.put(`http://192.168.1.164:8000/api/grocery/list/deactivate/${listId}`);
       // Refresh the grocery lists after deleting one
       fetchGroceryLists();
     } catch (error) {
@@ -88,7 +88,7 @@ const GroceryPage = () => {
   // Function to save edited items for a grocery list
   const saveEditedItems = async () => {
     try {
-      await axios.put(`http://127.0.0.1:8000/api/grocery/list/edit/${editingListId}`, { items: editedItems });
+      await axios.put(`http://192.168.1.164:8000/api/grocery/list/edit/${editingListId}`, { items: editedItems });
       // Exit editing mode and refresh the grocery lists
       toggleEditingMode(editingListId);
       fetchGroceryLists();
@@ -163,7 +163,8 @@ const GroceryPage = () => {
             {/*if this list entry id matches the editting list id, do editting stuff*/}
             {editingListId === list[0] ? (
               <>
-                {editedItems.map((item, index) => (
+                {
+                editedItems.map((item, index) => (
                   <div key={index} className="mb-2">
                     <Form.Control
                       type="text"
